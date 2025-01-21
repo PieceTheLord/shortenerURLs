@@ -10,13 +10,22 @@ class Connection:
             host="localhost",
             port=5432,
         )
+        # Create cursor to interact with the database
         self.cur = db.cursor()
+        self.cur.execute("""
+            CREATE TABLE IF NOT EXISTS urls(
+                short_code TEXT PRIMARY KEY, 
+                original_url TEXT NOT NULL, 
+                click_count INTEGER DEFAULT 0, 
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """)
 
     def Rquery(self, query: str, params: list = None):
         """Query to read something (e.g. rows)"""
         if params is None:
             params = []
-        
+
         try:
             self.cur.execute(query, params)
             return self.cur.fetchall()
