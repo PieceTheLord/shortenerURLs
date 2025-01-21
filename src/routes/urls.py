@@ -15,13 +15,11 @@ async def root():
 
 @router.get("/one")
 def one_url(request: Request):
-    # db.increase_click_by_one((None, str(request.url)))
     return "one"
 
 
 @router.get("/two")
 def two_url(request: Request):
-    # db.increase_click_by_one((None, str(request.url)))
     return "two"
 
 
