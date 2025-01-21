@@ -14,7 +14,7 @@ class DB(Connection):
         else:
             raise Exception("No parameters provided")
 
-    def increas_click_by_one(self, params: list = None):
+    def increase_click_by_one(self, params: list = None):
         """Increase the click_count field by one"""
 
         if params is not None:
@@ -27,8 +27,11 @@ class DB(Connection):
         """Insert short_code and original_url into the database"""
 
         if params is not None:
-            sql = "INSERT INTO urls(short_code, original_url) VALUES(%s, %s)"
-            return db.Cquery(sql, params)
+            try:
+                sql = "INSERT INTO urls(short_code, original_url) VALUES(%s, %s)"
+                return db.Cquery(sql, params)
+            except Exception as e:
+                return e
         else:
             raise Exception("No parameters provided")
 

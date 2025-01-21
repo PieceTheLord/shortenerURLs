@@ -2,8 +2,8 @@ import hashlib
 
 from fastapi import APIRouter, Request, status
 from fastapi.responses import RedirectResponse
-from ..db.db import db
-
+from ..db.Db import db
+from ..utils.url_formatter import url_formatter
 
 router = APIRouter()
 
@@ -14,49 +14,47 @@ async def root():
 
 
 @router.get("/one")
-def one_url():
+def one_url(request: Request):
+    # db.increase_click_by_one((None, str(request.url)))
     return "one"
 
 
-@router.get("two")
-def two_url():
+@router.get("/two")
+def two_url(request: Request):
+    # db.increase_click_by_one((None, str(request.url)))
     return "two"
 
 
-@router.get("/{short_code}")
-def redirecter(request: Request, short_code: str):
-    short_code = short_code
-    print(short_code)
-    check_url = db.check_url((short_code,str(request.url),))
-    if check_url:
-        url = str(check_url[0][0]).split("/")
-        del url[3]
-        url = "/".join(url)
-        return RedirectResponse(url)
-    return "No one url found"
+@router.get("/create_url/{short_code}")
+def create_url(request: Request, short_code: str):
 
+    original_url = url_formatter(str(request.url))
+    
+    if db.check_url([None, original_url]):
+        return RedirectResponse(original_url)
 
-@router.get("/create_url/{short_code_value}")
-def url(request: Request, short_code_value: str):
-    gotten_url = "/" + str(request.url)[21:].split("/")[2]
-    original_url = str(request.url)
-    urls = (
-        short_code_value,
+    short_code = hashlib.sha256(str(request.url).encode("utf-8")).hexdigest()[:8]
+    data = (
+        short_code,
         original_url,
     )
+
+    if original_url[21:] in [route.path for route in router.routes]:
+        try:
+            db.insert_data(data)
+            return RedirectResponse(original_url)
+        except Exception as e:
+            return Exception(e)
+
+
+@router.get("/{short_code_value}")
+def url(request: Request, short_code_value: str):
+    gotten_url = "/" + str(request.url)[21:]
+    original_url = str(request.url)
+    urls = (short_code_value, original_url)
     check_url = db.check_url(urls)
 
     if check_url:
-        print(check_url[0])
-        db.increas_click_by_one(urls)
-        print("clicks")
-
-        return "Such URL is already exists"
-    elif gotten_url in [route.path for route in router.routes]:
-
-        short_code = str(hashlib.sha256(original_url.encode("utf-8")).hexdigest()[:8])
-
-        db.insert_data(urls)
-        return "URL inserted successfully!"
+        return RedirectResponse(check_url[0][0])
     else:
         return "Invalid URL"

@@ -32,7 +32,7 @@ class Connection:
             self.cur.execute(query, params)
             self.db.commit()
         except Exception as e:
-            print(e)
+            return e
 
 
 conn = Connection()
